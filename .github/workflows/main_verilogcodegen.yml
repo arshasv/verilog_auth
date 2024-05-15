@@ -28,7 +28,7 @@ jobs:
           source venv/bin/activate
             
       - name: Install poetry
-        run: pip3 install poetry
+        run: install poetry
       
       - name: run app
         run: python run.py
