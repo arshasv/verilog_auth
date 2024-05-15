@@ -26,8 +26,11 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
+            
+      - name: Install poetry
+        run: pip3 install poetry
       
-      - name: Install dependencies
+      - name: run app
         run: python run.py
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
