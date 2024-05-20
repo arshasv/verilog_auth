@@ -1,4 +1,7 @@
+import json
 from flask_restful import Resource, reqparse
+from marshmallow import ValidationError
+from flask import request, jsonify
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -16,26 +19,25 @@ user_schema = UserSchema()
 class RegisterResource(Resource):
 
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            "username", type=str, required=True, help="Username is required."
-        )
-        parser.add_argument("email", type=str, required=True, help="Email is required.")
-        parser.add_argument(
-            "password", type=str, required=True, help="Password is required."
-        )
-        args = parser.parse_args()
+        json_data = request.get_json()
+        # Load data into User schema for validation
+        try:
+            data = user_schema.load(json_data)
+
+        except ValidationError as err:
+            print(err)
+            return dict({"message": err.messages}), 400
+        # add new user to the db
+
+        password = data["password"]
+        confirm_password = data["confirm_password"]
+
+        # Check passwords match (already done in schema but let's confirm)
+        if password != confirm_password:
+            return {"error": "Passwords do not match"}, 400
 
         try:
-            username = args["username"]
-            email = args["email"]
-            password = args["password"]
-
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user:
-                return {"message": "Username already exists"}, 409
-
-            new_user = User(username=username, email=email, password=password)
+            new_user = User(**data)
             db.session.add(new_user)
             db.session.commit()
 
